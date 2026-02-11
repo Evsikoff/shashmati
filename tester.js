@@ -3,11 +3,12 @@
 //var params = getParams({booleans: ["no-multi-threading"]});
 var params = require("util").parseArgs({strict: false, allowPositionals: false}).values;
 var score;
-var depthFound;
+var depthFound = 0;
 var enginePath = params.enginePath ?? require("path").join(__dirname, "src", "stockfish.js");
 var execPath = params.execPath ?? process.execPath;
 var minDepth = Number((params.minDepth || params["min-depth"]) ?? 20);
 var minScore = Number((params.minScore || params["min-score"]) ?? 500);
+var delayModifier = Number((params.delayModifier || params["delay-modifier"]) ?? 1); /// Give the tests more (or less) time
 var testCompletedCorrectly = false;
 var spawnArgs = [];
 
@@ -130,7 +131,8 @@ stockfish.stdout.on("data", function onstdout(data)
         score = Number(data.match(/score cp ([-\d.]+)/)[1]);
     }
     if (data.indexOf("depth ") > -1) {
-        depthFound = Number(data.match(/depth ([\d]+)/)[1]);
+        /// When calling stop, the engine may output a shallower depth.
+        depthFound = Math.max(Number(data.match(/depth ([\d]+)/)[1]), depthFound);
     }
     
     if (data.indexOf("Checkers:") > -1) {
@@ -141,7 +143,7 @@ stockfish.stdout.on("data", function onstdout(data)
             setTimeout(function ()
             {
                 write("stop");
-            }, 3000);
+            }, 3000 * delayModifier);
         } else {
             error("Cannot find valid legal uci moves.");
         }
@@ -174,7 +176,7 @@ stockfish.on("exit", function (code)
 setTimeout(function ()
 {
     error("Timeout");
-}, 1000 * 5).unref();
+}, 1000 * 5 * delayModifier).unref();
 
 process.on("exit", function ()
 {

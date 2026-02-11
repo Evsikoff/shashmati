@@ -26,7 +26,7 @@ var preface;
 var postscript;
 var buildWithEmscripten;
 var child;
-var stockfishVersionNumber = "17.1";
+var stockfishVersionNumber = "18";
 var expectedEmscripten = "3.1.7";
 var fistRun;
 var basename;
@@ -451,7 +451,9 @@ function fixUpWASMBuild()
     }
     if (params.split && !params["no-split"]) {
         splitFile(finalWasmPath, params.split);
-        fs.unlinkSync(p.join(stockfishWASMPath));
+        try {
+            fs.unlinkSync(p.join(stockfishWASMPath));
+        } catch (e) {}
     }
     
     console.log("Built " + note(p.basename(finalWasmPath, ".wasm") + ".js"));
@@ -472,9 +474,19 @@ function splitFile(path, count)
     for (i = 0; i < count; ++i) {
         at = i * chunkSize;
         newPath = basename + "-part-" + i + ext;
+        try {
+            fs.unlinkSync(newPath);
+        } catch (e) {}
         fs.writeFileSync(newPath, data.slice(at, chunkSize + at));
         origPath = p.join(srcPath, "stockfish-part-" + i + ext);
-        makeSymLink(newPath, origPath);
+        if (origPath === newPath) {
+            builtFiles.push(origPath);
+        } else {
+            try {
+                fs.unlinkSync(origPath);
+            } catch (e) {}
+            makeSymLink(newPath, origPath);
+        }
     }
     fs.unlinkSync(path);
     if (builtFiles.indexOf(path) > -1) {
@@ -702,7 +714,7 @@ if (params.all) {
         {
             var val = params[key];
             var flag;
-            if (key === "all" || key === "lite" || key === "ultra-lite" || key === "basename" || key === "no-simd" || key === "non-nested" || key === "arch" || key === "_") {
+            if (key === "all" || key === "lite" || key === "ultra-lite" || key === "basename" || key === "non-nested" || key === "arch" || key === "_") {
                 return;
             }
             if (key.length === 1) {
