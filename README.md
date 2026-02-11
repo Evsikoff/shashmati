@@ -25,12 +25,6 @@ This edition of Stockfish.js comes in five flavors:
     * Compiled to JavaScript, not WASM. Compatible with every browser that runs JavaScript. Very slow and weak. Larger than the lite WASM engines (≈10MB). This engine should only be used as a last resort.
     * File: [`stockfish-18-asm.js`](https://github.com/nmrugg/stockfish.js/releases/download/v18.0.0/stockfish-18-asm.js)
 
-> [!IMPORTANT]
-> Due to the difficulty in handling and caching large files, the larger WASM files are split into parts. All parts are required to be in the same location and will be automatically assembled by the engine.
-
-> [!Note]
-> Also, the file names may have a hash appended to them.
-
 The WASM Stockfish engine will run on all modern browsers (e.g., Chrome/Edge/Firefox/Opera/Safari) on supported system (Windows 10+/macOS 11+/iOS 16+/Linux/Android), as well as supported versions of Node.js. For slightly older browsers, see the <a href=../../tree/Stockfish16>Stockfish.js 16 branch</a>. The ASM-JS engine will run in essentially any browser/runtime that supports JavaScript. For an engine that supports chess variants (like 3-check and Crazyhouse), see the <a href=../../tree/Stockfish11>Stockfish.js 11 branch</a>.
 
 ### API
