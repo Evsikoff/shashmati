@@ -21,6 +21,6 @@ fs.readdirSync(binDir).forEach(function (filename)
 fs.readdirSync(srcDir).forEach(function (filename)
 {
     if (/^stockfish.*\.(?:js|wasm)$/.test(filename)) {
-        fs.copyFileSync(p.join(srcDir, filename), p.join(binDir, filename));
+        fs.cpSync(p.join(srcDir, filename), p.join(binDir, filename));
     }
 });
