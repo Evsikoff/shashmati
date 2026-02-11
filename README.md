@@ -4,9 +4,6 @@
 
 Stockfish.js is currently updated to Stockfish 18.
 
-> [!IMPORTANT]
-> See <a href="https://github.com/nmrugg/stockfish.js/releases">Releases page</a> for the compiled files to download.
-
 This edition of Stockfish.js comes in five flavors:
 
  * The large multi-threaded engine:
