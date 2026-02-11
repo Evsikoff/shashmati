@@ -49,7 +49,7 @@ There are also examples of how to use Stockfish.js via Node.js.
 - <a href="https://github.com/official-stockfish/Stockfish">The Stockfish team</a>
 - <a href="https://github.com/exoticorn/stockfish-js">exoticorn</a>
 - <a href="https://github.com/ddugovic/Stockfish">ddugovic</a>
-- <a href="https://github.com/niklasf/">niklasf</a> <a href="https://github.com/niklasf/stockfish.js">stockfish.js</a> & <a href="https://github.com/niklasf/stockfish.wasm">stockfish.wasm</a>
+- <a href="https://github.com/niklasf/">niklasf</a> <a href="https://github.com/niklasf/stockfish.js">stockfish.js</a>, <a href="https://github.com/niklasf/stockfish.wasm">stockfish.wasm</a>, and <a href="https://github.com/lichess-org/stockfish-web">stockfish-web</a>
 - <a href="https://github.com/hi-ogawa/Stockfish">hi-ogawa</a>
 - <a href="https://github.com/linrock">linrock</a>
 - <a href="https://www.chess.com/">Chess.com</a> for sponsering development of Stockfish.js
