@@ -11,19 +11,19 @@ This edition of Stockfish.js comes in five flavors:
 
  * The large multi-threaded engine:
     * This is strongest version of the engine, but it is large (>100MB) and will only run in browsers with the proper <a href=https://web.dev/articles/cross-origin-isolation-guide>CORS headers</a> applied. This engine is recommended if possible.
-    * Files: `stockfish-nnue-18-[0-9a-f].js` & `stockfish-nnue-18-[0-9a-f]-part-\d.wasm`
+    * Files: [`stockfish-18.js`](https://github.com/nmrugg/stockfish.js/releases/download/v18.0.0/stockfish-18.js) & [`stockfish-18.wasm`](https://github.com/nmrugg/stockfish.js/releases/download/v18.0.0/stockfish-18.wasm)
  * The large single-threaded engine:
     * This is also large but will run in browsers without CORS headers; however it cannot use multiple threads via the UCI command `setoption name Threads`. This engine is recommended if CORS support is not possible.
-    * Files: `stockfish-nnue-18-single-[0-9a-f].js` & `stockfish-nnue-18-single-[0-9a-f]-part-\d.wasm`
+    * Files: [`stockfish-18-single.js`](https://github.com/nmrugg/stockfish.js/releases/download/v18.0.0/stockfish-18-single.js) & [`stockfish-18-single.wasm`](https://github.com/nmrugg/stockfish.js/releases/download/v18.0.0/stockfish-18-single.wasm)
  * The lite mult-threaded engine:
     * This is the same as the first multi-threaded but much smaller (≈7MB) and quite a bit weaker. This engine is recommended for mobile browsers when CORS is available.
-    * Files: `stockfish-nnue-18-lite-[0-9a-f].js` & `stockfish-nnue-18-lite-[0-9a-f].wasm`
+    * Files: [`stockfish-18-lite.js`](https://github.com/nmrugg/stockfish.js/releases/download/v18.0.0/stockfish-18-lite.js) & [`stockfish-18-lite.wasm`](https://github.com/nmrugg/stockfish.js/releases/download/v18.0.0/stockfish-18-lite.wasm)
  * The lite single-threaded engine:
     * Same as the first single-threaded engine but much smaller (≈7MB) and quite a bit weaker. This engine is recommended for mobile browsers that do not support CORS.
-    * Files: `stockfish-nnue-18-lite-single-[0-9a-f].js` & `stockfish-nnue-18-lite-single-[0-9a-f].wasm`
+    * Files: [`stockfish-18-lite-single.js`](https://github.com/nmrugg/stockfish.js/releases/download/v18.0.0/stockfish-18-lite-single.js) & [`stockfish-18-lite-single.wasm`](https://github.com/nmrugg/stockfish.js/releases/download/v18.0.0/stockfish-18-lite-single.wasm)
  * The ASM-JS engine:
     * Compiled to JavaScript, not WASM. Compatible with every browser that runs JavaScript. Very slow and weak. Larger than the lite WASM engines (≈10MB). This engine should only be used as a last resort.
-    * File: `stockfish-18-asm-[0-9a-f].js`
+    * File: [`stockfish-18-asm.js`](https://github.com/nmrugg/stockfish.js/releases/download/v18.0.0/stockfish-18-asm.js)
 
 > [!IMPORTANT]
 > Due to the difficulty in handling and caching large files, the larger WASM files are split into parts. All parts are required to be in the same location and will be automatically assembled by the engine.
