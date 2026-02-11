@@ -1,7 +1,7 @@
 {
   "name": "stockfish",
   "description": "The Stockfish chess engine in Web Assembly (WASM)",
-  "version": "18.0.0",
+  "version": "18.0.1",
   "author": {
     "name": "Nathan Rugg",
     "email": "nmrugg@gmail.com"
@@ -20,10 +20,20 @@
     "type": "git",
     "url": "git://github.com/nmrugg/stockfish.js"
   },
-  "license": "GPL",
-  "main": "src/stockfish.js",
+  "license": "GPL-3.0",
+  "main": "bin/stockfish.js",
   "bin": {
-    "stockfishjs": "./stockfishjs"
+    "stockfishjs": "./bin/stockfish.js",
+    "stockfish.js": "./bin/stockfish.js"
   },
-  "readmeFilename": "readme.md"
+  "scripts": {
+    "postinstall": "node scripts/link-stockfish.js",
+    "prepack": "node scripts/prepack.js",
+    "postpack": "node scripts/postpack.js",
+    "start": "node bin/stockfish.js"
+  },
+  "files": [
+    "bin/"
+  ],
+  "readmeFilename": "README.md"
 }

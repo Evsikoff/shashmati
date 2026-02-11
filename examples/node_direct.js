@@ -3,6 +3,9 @@
 var Stockfish;
 var engine;
 
+/// Make sure the engine is present.
+require("./get-engine.js");
+
 if (process.argv[2] === "--help" || process.argv[2] === "-h") {
     console.log("Usage: node node_direct.js [FEN OR move1 move2 ...moveN]");
     console.log("");
@@ -17,7 +20,7 @@ if (process.argv[2] === "--help" || process.argv[2] === "-h") {
 try {
     var fs = require("fs");
     var p = require("path");
-    var pathToEngine = p.join(__dirname, "..", "src", fs.readlinkSync(p.join(__dirname, "../src/stockfish.js")));
+    var pathToEngine = p.join(__dirname, "node_modules", "stockfish", "bin", "stockfish.js");
     
     var ext = p.extname(pathToEngine);
     var basepath = pathToEngine.slice(0, -ext.length);

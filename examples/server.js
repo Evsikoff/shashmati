@@ -9,6 +9,9 @@ var dir  = params.dir || __dirname;
 var port = (params.port || params.p) || (params.ssl ? 443 : 9091);
 var listDir = params.list || false;
 
+/// Make sure the engine is present.
+require("./get-engine.js");
+
 /// Added mime-types from https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
 /// Using /([^\t]+)\t([^\t]+)\t([^\t]+)\n/g, "    "$1": "$3", /// $2\n" (after some clean up)
 /// Another source is https://www.sitepoint.com/mime-types-complete-list/
