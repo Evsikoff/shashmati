@@ -7,7 +7,7 @@ var p = require("path");
 
 var version = require("../package.json").version;
 
-var binDir = p.join(__dirname, "..", "src");
+var binDir = p.join(__dirname, "..", "bin");
 var jsLinkPath = p.join(binDir, "stockfish.js");
 var wasmLinkPath = p.join(binDir, "stockfish.wasm");
 
