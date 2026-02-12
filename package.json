@@ -25,7 +25,7 @@
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
     "prepack": "node scripts/prepack.js",
-    "postpack": "node scripts/postpack.js",
+    "postpack": "node scripts/postpack.js"
   },
   "files": [
     "bin/",
