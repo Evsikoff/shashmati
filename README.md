@@ -40,9 +40,7 @@ You need to have <a href="https://emscripten.org/docs/getting_started/downloads.
 
 ### Examples
 
-There are examples in the examples folder. You will need to run the examples/server.js server to view the client-side examples. Then you can test out a simple interface at http://localhost:9091/ or a more complete demo at http://localhost:9091/demo.html.
-
-There are also examples of how to use Stockfish.js via Node.js.
+To learn how to use the engine in your own projects, see the <a href="https://github.com/nmrugg/stockfish.js/tree/master/examples">examples folder</a>.
 
 ### Thanks
 
