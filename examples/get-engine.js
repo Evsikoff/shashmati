@@ -15,9 +15,9 @@ if (!hasEngines()) {
     try {
         fs.mkdirSync(node_modules);
     } catch (e) {}
-    require("child_process").execFileSync("npm", ["i", "stockfish@latest"], {cwd: __dirname});
+    require("child_process").execFileSync("npm", ["i"], {cwd: __dirname});
     if (!hasEngines()) {
-        console.error("Could not find stockfish engine. Please run \"npm install stockfish@latest\" first.");
+        console.error("Could not find stockfish engine. Please run \"npm install\" first.");
         process.exit(1);
     }
 }
