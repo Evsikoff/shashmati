@@ -35,8 +35,7 @@ var loadEngine = (function ()
         if (path.slice(-3).toLowerCase() === ".js") {
             args.push(path);
             path = process.execPath;
-            ///NOTE: Node.js v14+ needs these options.
-            ///      At some point in the future, the V8 engine should not need these flags anymore.
+            ///NOTE: Node.js v14-18 need these flags.
             if (process.version.substr(1, 2) >= 14 && process.version.substr(1, 2) < 19) {
                 args.unshift("--experimental-wasm-threads");
                 args.unshift("--experimental-wasm-simd");

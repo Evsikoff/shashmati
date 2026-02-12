@@ -414,5 +414,5 @@ createServer(function(req, res)
     
 }).listen(parseInt(port, 10), function onopen()
 {
-    console.log("Listening to http" + (params.ssl ? "s" : "") + "://localhost:" + port);
+    console.log("Visit http" + (params.ssl ? "s" : "") + "://localhost:" + port + "/demo.html for full demo.");
 });
