@@ -1,7 +1,7 @@
 {
   "name": "stockfish",
   "description": "The Stockfish chess engine in Web Assembly (WASM)",
-  "version": "18.0.1",
+  "version": "18.0.2",
   "author": {
     "name": "Nathan Rugg",
     "email": "nmrugg@gmail.com"
@@ -33,7 +33,8 @@
     "start": "node bin/stockfish.js"
   },
   "files": [
-    "bin/"
+    "bin/",
+    "scripts/link-stockfish.js"
   ],
   "readmeFilename": "README.md"
 }
