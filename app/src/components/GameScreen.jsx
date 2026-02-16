@@ -1,23 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useChessGame } from "./Board";
 import GameControls from "./GameControls";
 
 export default function GameScreen({ opponent, onExit, onWin }) {
   const [playerColor] = useState(() => (Math.random() < 0.5 ? "w" : "b"));
   const [gameResult, setGameResult] = useState(null);
-  const [boardWidth, setBoardWidth] = useState(480);
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    const updateSize = () => {
-      const vh = window.innerHeight;
-      const maxBoard = Math.min(vh - 40, 600);
-      setBoardWidth(Math.max(300, maxBoard));
-    };
-    updateSize();
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
-  }, []);
 
   const handleGameEnd = useCallback((result) => {
     setGameResult(result);
@@ -27,7 +14,6 @@ export default function GameScreen({ opponent, onExit, onWin }) {
     opponent,
     playerColor,
     onGameEnd: handleGameEnd,
-    boardWidth,
   });
 
   const handleRestart = () => {
@@ -43,7 +29,7 @@ export default function GameScreen({ opponent, onExit, onWin }) {
   const avatarPath = opponent.avatar_path.replace(/\\/g, "/");
 
   return (
-    <div className="game-screen" ref={containerRef}>
+    <div className="game-screen">
       {/* Left panel */}
       <div className="game-panel panel-left">
         <div className="opponent-info">
