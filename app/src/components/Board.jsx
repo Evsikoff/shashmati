@@ -3,7 +3,7 @@ import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import Engine from "../utils/Engine";
 
-export function useChessGame({ opponent, playerColor, onGameEnd, boardWidth }) {
+export function useChessGame({ opponent, playerColor, onGameEnd }) {
   const gameRef = useRef(new Chess());
   const engineRef = useRef(null);
   const [position, setPosition] = useState(gameRef.current.fen());
@@ -98,12 +98,14 @@ export function useChessGame({ opponent, playerColor, onGameEnd, boardWidth }) {
   }, [opponent]);
 
   const onDrop = useCallback(
-    (sourceSquare, targetSquare, piece) => {
+    ({ piece, sourceSquare, targetSquare }) => {
       const game = gameRef.current;
       if (thinking) return false;
+      if (!targetSquare) return false;
       if (game.turn() !== playerColor) return false;
 
-      const promotion = piece?.[1]?.toLowerCase() === "p" ? "q" : undefined;
+      const pieceType = piece?.pieceType || "";
+      const promotion = pieceType[1]?.toLowerCase() === "p" ? "q" : undefined;
       const move = game.move({
         from: sourceSquare,
         to: targetSquare,
@@ -168,19 +170,20 @@ export function useChessGame({ opponent, playerColor, onGameEnd, boardWidth }) {
     boardElement: (
       <div className="board-container">
         <Chessboard
-          id="shashmaty-board"
-          position={position}
-          onPieceDrop={onDrop}
-          boardWidth={boardWidth}
-          boardOrientation={playerColor === "w" ? "white" : "black"}
-          customBoardStyle={{
-            borderRadius: "4px",
-            boxShadow: "0 4px 20px rgba(45, 36, 20, 0.4)",
+          options={{
+            id: "shashmaty-board",
+            position,
+            onPieceDrop: onDrop,
+            boardOrientation: playerColor === "w" ? "white" : "black",
+            boardStyle: {
+              borderRadius: "4px",
+              boxShadow: "0 4px 20px rgba(45, 36, 20, 0.4)",
+            },
+            darkSquareStyle: { backgroundColor: "#225081" },
+            lightSquareStyle: { backgroundColor: "#3ca4a0" },
+            squareStyles: highlightSquares,
+            animationDurationInMs: 250,
           }}
-          customDarkSquareStyle={{ backgroundColor: "#225081" }}
-          customLightSquareStyle={{ backgroundColor: "#3ca4a0" }}
-          customSquareStyles={highlightSquares}
-          animationDuration={250}
         />
         {thinking && (
           <div className="thinking-indicator">Соперник думает...</div>
