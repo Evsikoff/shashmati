@@ -60,13 +60,13 @@ Value Eval::evaluate(const Eval::NNUE::Networks&    /*networks*/,
                      Eval::NNUE::AccumulatorCaches& /*caches*/,
                      int                            /*optimism*/) {
 
-    assert(!pos.checkers());
+    if (pos.checkers()) return -VALUE_MATE;
 
     Color us   = pos.side_to_move();
     Color them = ~us;
     Bitboard enemyKingBB = pos.pieces(them, KING);
     Bitboard ourKingBB   = pos.pieces(us, KING);
-    if (!enemyKingBB || !ourKingBB) return (Value)simple_eval(pos);
+    if (!enemyKingBB || !ourKingBB) return (Value)Eval::simple_eval(pos);
     Square enemyKing = lsb(enemyKingBB);
     Square ourKing   = lsb(ourKingBB);
 
@@ -78,8 +78,7 @@ Value Eval::evaluate(const Eval::NNUE::Networks&    /*networks*/,
     while (ourPieces)
     {
         Square s  = pop_lsb(ourPieces);
-        PieceType pt = type_of(pos.piece_on(s));
-        if (pt == KING)
+        if (type_of(pos.piece_on(s)) == KING)
             continue;
 
         // Bonus for proximity to enemy king
@@ -139,7 +138,7 @@ Value Eval::evaluate(const Eval::NNUE::Networks&    /*networks*/,
     v -= v * pos.rule50_count() / 199;
 
     // Guarantee evaluation does not hit the tablebase range
-    v = std::clamp(v, VALUE_TB_LOSS_IN_MAX_PLY + 1, VALUE_TB_WIN_IN_MAX_PLY - 1);
+    v = std::clamp(v, (int)VALUE_TB_LOSS_IN_MAX_PLY + 1, (int)VALUE_TB_WIN_IN_MAX_PLY - 1);
 
     return (Value)v;
 }
@@ -162,15 +161,15 @@ std::string Eval::trace(Position& pos, const Eval::NNUE::Networks& networks) {
 
     ss << std::showpoint << std::showpos << std::fixed << std::setprecision(2) << std::setw(15);
 
-    auto [psqt, positional] = networks.big.evaluate(pos, *accumulators, caches->big);
-    Value v                 = psqt + positional;
-    v                       = pos.side_to_move() == WHITE ? v : -v;
-    ss << "NNUE evaluation        " << 0.01 * UCIEngine::to_cp(v, pos) << " (white side)\n";
+    // auto [psqt, positional] = networks.big.evaluate(pos, *accumulators, caches->big);
+    Value v                 = 0; // psqt + positional;
+    // v                       = pos.side_to_move() == WHITE ? v : -v;
+    ss << "NNUE evaluation disabled\n";
 
     v = evaluate(networks, pos, *accumulators, *caches, VALUE_ZERO);
     v = pos.side_to_move() == WHITE ? v : -v;
     ss << "Final evaluation       " << 0.01 * UCIEngine::to_cp(v, pos) << " (white side)";
-    ss << " [with scaled NNUE, ...]";
+    ss << " [custom for First Check]";
     ss << "\n";
 
     return ss.str();
