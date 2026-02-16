@@ -152,8 +152,12 @@ ExtMove* MovePicker::score(MoveList<Type>& ml) {
         const Piece     capturedPiece = pos.piece_on(to);
 
         if constexpr (Type == CAPTURES)
+        {
             m.value = (*captureHistory)[pc][to][type_of(capturedPiece)]
                     + 7 * int(PieceValue[capturedPiece]);
+            if (pos.gives_check(m))
+                m.value += (1 << 28);
+        }
 
         else if constexpr (Type == QUIETS)
         {
@@ -167,7 +171,10 @@ ExtMove* MovePicker::score(MoveList<Type>& ml) {
             m.value += (*continuationHistory[5])[pc][to];
 
             // bonus for checks
-            m.value += (bool(pos.check_squares(pt) & to) && pos.see_ge(m, -75)) * 16384;
+            if (pos.gives_check(m))
+                m.value += (1 << 28);
+            else
+                m.value += (bool(pos.check_squares(pt) & to) && pos.see_ge(m, -75)) * 16384;
 
             // penalty for moving to a square threatened by a lesser piece
             // or bonus for escaping an attack by a lesser piece.
@@ -226,6 +233,21 @@ top:
 
         cur = endBadCaptures = moves;
         endCur = endCaptures = score<CAPTURES>(ml);
+
+        if (stage == QCAPTURE_INIT)
+        {
+            MoveList<QUIETS> ql(pos);
+            for (auto m : ql)
+            {
+                if (pos.gives_check(m))
+                {
+                    *endCur = m;
+                    endCur->value = (1 << 28);
+                    endCur++;
+                }
+            }
+            endCaptures = endCur;
+        }
 
         partial_insertion_sort(cur, endCur, std::numeric_limits<int>::min());
         ++stage;

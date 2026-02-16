@@ -669,8 +669,12 @@ Value Search::Worker::search(
     SearchedList quietsSearched;
 
     // Step 1. Initialize node
-    ss->inCheck   = pos.checkers();
-    priorCapture  = pos.captured_piece();
+    ss->inCheck = pos.checkers();
+
+    if (ss->inCheck)
+        return mated_in(ss->ply);
+
+    priorCapture = pos.captured_piece();
     Color us      = pos.side_to_move();
     ss->moveCount = 0;
     bestValue     = -VALUE_INFINITE;
@@ -1543,7 +1547,11 @@ Value Search::Worker::qsearch(Position& pos, Stack* ss, Value alpha, Value beta)
 
     bestMove    = Move::none();
     ss->inCheck = pos.checkers();
-    moveCount   = 0;
+
+    if (ss->inCheck)
+        return mated_in(ss->ply);
+
+    moveCount = 0;
 
     // Used to send selDepth info to GUI (selDepth counts from 1, ply from 0)
     if (PvNode && selDepth < ss->ply + 1)
