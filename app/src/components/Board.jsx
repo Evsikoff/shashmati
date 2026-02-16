@@ -13,6 +13,7 @@ export function useChessGame({ opponent, playerColor, onGameEnd }) {
   const mountedRef = useRef(true);
 
   const engineColor = playerColor === "w" ? "b" : "w";
+  const engineSkillLevel = opponent.strength <= 5 ? 5 : opponent.strength;
 
   const depth = useMemo(() => {
     const s = opponent.strength;
@@ -20,6 +21,22 @@ export function useChessGame({ opponent, playerColor, onGameEnd }) {
     if (s <= 10) return 8 + Math.floor(s / 2);
     return 10 + Math.floor(s / 3);
   }, [opponent.strength]);
+
+  const getInstantCheckMove = useCallback((game) => {
+    const legalMoves = game.moves({ verbose: true });
+
+    for (const candidate of legalMoves) {
+      game.move(candidate);
+      const givesCheck = game.inCheck();
+      game.undo();
+
+      if (givesCheck) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }, []);
 
   const checkGameState = useCallback(
     (game) => {
@@ -45,11 +62,36 @@ export function useChessGame({ opponent, playerColor, onGameEnd }) {
     [engineColor, onGameEnd]
   );
 
+  const applyEngineMove = useCallback(
+    (moveData) => {
+      const game = gameRef.current;
+      if (!moveData) return;
+
+      const move = game.move(moveData);
+      if (!move) return;
+
+      setPosition(game.fen());
+      setMoveHistory([...game.history()]);
+      setHighlightSquares({
+        [move.from]: { backgroundColor: "rgba(152, 86, 26, 0.3)" },
+        [move.to]: { backgroundColor: "rgba(152, 86, 26, 0.5)" },
+      });
+      checkGameState(game);
+    },
+    [checkGameState]
+  );
+
   const makeEngineMove = useCallback(async () => {
     const engine = engineRef.current;
     const game = gameRef.current;
     if (!engine || !mountedRef.current) return;
     if (game.isGameOver()) return;
+
+    const instantCheckMove = getInstantCheckMove(game);
+    if (instantCheckMove) {
+      applyEngineMove(instantCheckMove);
+      return;
+    }
 
     setThinking(true);
     try {
@@ -60,23 +102,14 @@ export function useChessGame({ opponent, playerColor, onGameEnd }) {
         const from = bestMove.substring(0, 2);
         const to = bestMove.substring(2, 4);
         const promotion = bestMove.length > 4 ? bestMove[4] : undefined;
-        const move = game.move({ from, to, promotion });
-        if (move) {
-          setPosition(game.fen());
-          setMoveHistory([...game.history()]);
-          setHighlightSquares({
-            [from]: { backgroundColor: "rgba(152, 86, 26, 0.3)" },
-            [to]: { backgroundColor: "rgba(152, 86, 26, 0.5)" },
-          });
-          checkGameState(game);
-        }
+        applyEngineMove({ from, to, promotion });
       }
     } catch (err) {
       console.error("Engine error:", err);
     } finally {
       if (mountedRef.current) setThinking(false);
     }
-  }, [depth, checkGameState]);
+  }, [depth, getInstantCheckMove, applyEngineMove]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -85,7 +118,7 @@ export function useChessGame({ opponent, playerColor, onGameEnd }) {
     eng.init();
     eng.readyPromise.then(() => {
       if (!mountedRef.current) return;
-      eng.setSkillLevel(opponent.strength);
+      eng.setSkillLevel(engineSkillLevel);
       eng.newGame();
       if (engineColor === "w") {
         makeEngineMove();
@@ -95,7 +128,7 @@ export function useChessGame({ opponent, playerColor, onGameEnd }) {
       mountedRef.current = false;
       eng.destroy();
     };
-  }, [opponent]);
+  }, [opponent, engineSkillLevel, engineColor, makeEngineMove]);
 
   const onDrop = useCallback(
     ({ piece, sourceSquare, targetSquare }) => {
@@ -147,12 +180,13 @@ export function useChessGame({ opponent, playerColor, onGameEnd }) {
     setHighlightSquares({});
     const engine = engineRef.current;
     if (engine) {
+      engine.setSkillLevel(engineSkillLevel);
       engine.newGame();
       if (engineColor === "w") {
         makeEngineMove();
       }
     }
-  }, [engineColor, makeEngineMove]);
+  }, [engineColor, engineSkillLevel, makeEngineMove]);
 
   const formatHistory = () => {
     const pairs = [];
