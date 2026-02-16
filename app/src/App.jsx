@@ -1,41 +1,77 @@
 import { useState, useEffect } from "react";
 import MainMenu from "./components/MainMenu";
 import GameScreen from "./components/GameScreen";
-import { getProgress, setProgress } from "./utils/progress";
+import { loadProgress, saveProgress } from "./utils/progress";
+import {
+  initYandexSdk,
+  notifyLoadingReady,
+  setDocumentLanguage,
+  startGameplay,
+  stopGameplay,
+} from "./utils/yandexSdk";
 
 export default function App() {
   const [shahs, setShahs] = useState([]);
-  const [progress, setLocalProgress] = useState(getProgress());
+  const [progress, setLocalProgress] = useState(0);
   const [currentOpponent, setCurrentOpponent] = useState(null);
+  const [appLocked, setAppLocked] = useState(true);
 
   useEffect(() => {
-    // Init Yandex SDK
-    if (window.YaGames) {
-      window.YaGames.init()
-        .then((ysdk) => {
-          window.ysdk = ysdk;
-        })
-        .catch(() => {});
+    let isMounted = true;
+
+    const bootstrap = async () => {
+      const ysdk = await initYandexSdk();
+      setDocumentLanguage(ysdk);
+
+      const [loadedShahs, loadedProgress] = await Promise.all([
+        fetch("/data/shahs.json").then((r) => r.json()),
+        loadProgress(),
+      ]);
+
+      if (!isMounted) {
+        return;
+      }
+
+      setShahs(loadedShahs);
+      setLocalProgress(loadedProgress);
+
+      notifyLoadingReady(ysdk);
+      setAppLocked(false);
+    };
+
+    bootstrap().catch(console.error);
+
+    return () => {
+      isMounted = false;
+      stopGameplay();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!shahs.length) {
+      return;
     }
 
-    // Load shahs data
-    fetch("/data/shahs.json")
-      .then((r) => r.json())
-      .then(setShahs)
-      .catch(console.error);
-  }, []);
+    if (currentOpponent) {
+      startGameplay();
+      return;
+    }
+
+    stopGameplay();
+  }, [currentOpponent, shahs.length]);
 
   const handleSelectOpponent = (shah) => {
     setCurrentOpponent(shah);
   };
 
   const handleExit = () => {
+    stopGameplay();
     setCurrentOpponent(null);
   };
 
-  const handleWin = (shahId) => {
-    setProgress(shahId);
-    setLocalProgress(shahId);
+  const handleWin = async (shahId) => {
+    const updatedProgress = await saveProgress(shahId);
+    setLocalProgress(updatedProgress);
   };
 
   if (!shahs.length) {
@@ -47,21 +83,21 @@ export default function App() {
     );
   }
 
-  if (currentOpponent) {
-    return (
-      <GameScreen
-        opponent={currentOpponent}
-        onExit={handleExit}
-        onWin={handleWin}
-      />
-    );
-  }
-
   return (
-    <MainMenu
-      shahs={shahs}
-      progress={progress}
-      onSelectOpponent={handleSelectOpponent}
-    />
+    <div className={appLocked ? "app-root app-locked" : "app-root"}>
+      {currentOpponent ? (
+        <GameScreen
+          opponent={currentOpponent}
+          onExit={handleExit}
+          onWin={handleWin}
+        />
+      ) : (
+        <MainMenu
+          shahs={shahs}
+          progress={progress}
+          onSelectOpponent={handleSelectOpponent}
+        />
+      )}
+    </div>
   );
 }
