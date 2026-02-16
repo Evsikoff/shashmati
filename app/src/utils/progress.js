@@ -1,15 +1,36 @@
+import { loadCloudProgress, saveCloudProgress } from "./yandexSdk";
+
 const STORAGE_KEY = "shashmaty_progress";
 
-export function getProgress() {
+function getLocalProgress() {
   const val = localStorage.getItem(STORAGE_KEY);
   return val ? parseInt(val, 10) : 0;
 }
 
-export function setProgress(defeatedId) {
-  const current = getProgress();
-  if (defeatedId > current) {
-    localStorage.setItem(STORAGE_KEY, String(defeatedId));
+function setLocalProgress(progress) {
+  localStorage.setItem(STORAGE_KEY, String(progress));
+}
+
+export async function loadProgress() {
+  const cloudProgress = await loadCloudProgress();
+
+  if (cloudProgress !== null) {
+    setLocalProgress(cloudProgress);
+    return cloudProgress;
   }
+
+  return getLocalProgress();
+}
+
+export async function saveProgress(defeatedId) {
+  const current = getLocalProgress();
+  if (defeatedId <= current) {
+    return current;
+  }
+
+  setLocalProgress(defeatedId);
+  await saveCloudProgress(defeatedId);
+  return defeatedId;
 }
 
 export function isUnlocked(shahId, progress) {
