@@ -13,7 +13,7 @@ export function useChessGame({ opponent, playerColor, onGameEnd }) {
   const mountedRef = useRef(true);
 
   const engineColor = playerColor === "w" ? "b" : "w";
-  const engineSkillLevel = opponent.strength <= 5 ? 5 : opponent.strength;
+  const engineSkillLevel = 20; // temporary: force Stockfish to max strength in every game
 
   const depth = useMemo(() => {
     const s = opponent.strength;
