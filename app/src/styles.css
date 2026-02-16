@@ -17,6 +17,28 @@
   box-sizing: border-box;
 }
 
+
+html,
+body,
+#root {
+  overscroll-behavior-y: none;
+}
+
+* {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+.app-root.app-locked {
+  pointer-events: none;
+}
+
 body {
   font-family: "Noto Serif", Georgia, serif;
   background: var(--color-bg-light);
