@@ -17,14 +17,17 @@ export function useChessGame({ opponent, playerColor, onGameEnd }) {
 
   const depth = useMemo(() => {
     const s = opponent.strength;
-    if (s <= 5) return 4 + s;
-    if (s <= 10) return 8 + Math.floor(s / 2);
-    return 10 + Math.floor(s / 3);
+    // Increase depth to make engine stronger in tactical "First Check" variant
+    if (s <= 5) return 6 + s;
+    if (s <= 10) return 10 + Math.floor(s / 2);
+    return 14 + Math.floor(s / 2);
   }, [opponent.strength]);
 
   const getInstantCheckMove = useCallback((game) => {
     const legalMoves = game.moves({ verbose: true });
 
+    // Sort moves to prioritize checks with valuable pieces or central squares if needed
+    // But in First Check, any check wins instantly.
     for (const candidate of legalMoves) {
       game.move(candidate);
       const givesCheck = game.inCheck();
@@ -36,6 +39,32 @@ export function useChessGame({ opponent, playerColor, onGameEnd }) {
     }
 
     return null;
+  }, []);
+
+  const getAvoidingCheckMove = useCallback((game) => {
+    const legalMoves = game.moves({ verbose: true });
+    const safeMoves = [];
+
+    for (const move of legalMoves) {
+      game.move(move);
+      const opponentMoves = game.moves({ verbose: true });
+      let canBeChecked = false;
+      for (const opMove of opponentMoves) {
+        game.move(opMove);
+        if (game.inCheck()) {
+          canBeChecked = true;
+          game.undo();
+          break;
+        }
+        game.undo();
+      }
+      game.undo();
+
+      if (!canBeChecked) {
+        safeMoves.push(move);
+      }
+    }
+    return safeMoves;
   }, []);
 
   const checkGameState = useCallback(
@@ -87,6 +116,7 @@ export function useChessGame({ opponent, playerColor, onGameEnd }) {
     if (!engine || !mountedRef.current) return;
     if (game.isGameOver()) return;
 
+    // 1. Check if we have an instant winning move (check)
     const instantCheckMove = getInstantCheckMove(game);
     if (instantCheckMove) {
       applyEngineMove(instantCheckMove);
@@ -95,21 +125,40 @@ export function useChessGame({ opponent, playerColor, onGameEnd }) {
 
     setThinking(true);
     try {
-      const bestMove = await engine.findBestMove(game.fen(), depth);
+      // 2. Ask Stockfish for the best move
+      const bestMoveStr = await engine.findBestMove(game.fen(), depth);
       if (!mountedRef.current) return;
 
-      if (bestMove && bestMove !== "(none)") {
-        const from = bestMove.substring(0, 2);
-        const to = bestMove.substring(2, 4);
-        const promotion = bestMove.length > 4 ? bestMove[4] : undefined;
-        applyEngineMove({ from, to, promotion });
+      if (bestMoveStr && bestMoveStr !== "(none)") {
+        const from = bestMoveStr.substring(0, 2);
+        const to = bestMoveStr.substring(2, 4);
+        const promotion = bestMoveStr.length > 4 ? bestMoveStr[4] : undefined;
+        const bestMove = { from, to, promotion };
+
+        // 3. Verify if Stockfish's move is safe from an immediate check response
+        // (Stockfish should know this, but we add an extra layer of safety in JS)
+        game.move(bestMove);
+        const opponentInstantCheck = getInstantCheckMove(game);
+        game.undo();
+
+        if (opponentInstantCheck) {
+           console.log("Stockfish's move was unsafe, trying to find a safer move in JS...");
+           const safeMoves = getAvoidingCheckMove(game);
+           if (safeMoves.length > 0) {
+             // Pick the first safe move for now, or we could try to evaluate them
+             applyEngineMove(safeMoves[0]);
+             return;
+           }
+        }
+
+        applyEngineMove(bestMove);
       }
     } catch (err) {
       console.error("Engine error:", err);
     } finally {
       if (mountedRef.current) setThinking(false);
     }
-  }, [depth, getInstantCheckMove, applyEngineMove]);
+  }, [depth, getInstantCheckMove, getAvoidingCheckMove, applyEngineMove]);
 
   useEffect(() => {
     mountedRef.current = true;

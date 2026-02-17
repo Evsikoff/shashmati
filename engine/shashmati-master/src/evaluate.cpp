@@ -54,43 +54,93 @@ bool Eval::use_smallnet(__attribute__((unused)) const Position& pos) { return fa
 
 // Evaluate is the evaluator for the outer world. It returns a static evaluation
 // of the position from the point of view of the side to move.
-Value Eval::evaluate(const Eval::NNUE::Networks&    networks,
+Value Eval::evaluate(const Eval::NNUE::Networks&    /*networks*/,
                      const Position&                pos,
-                     Eval::NNUE::AccumulatorStack&  accumulators,
-                     Eval::NNUE::AccumulatorCaches& caches,
-                     int                            optimism) {
+                     Eval::NNUE::AccumulatorStack&  /*accumulators*/,
+                     Eval::NNUE::AccumulatorCaches& /*caches*/,
+                     int                            /*optimism*/) {
 
-    assert(!pos.checkers());
+    if (pos.checkers()) return -VALUE_MATE;
 
-    bool smallNet           = use_smallnet(pos);
-    auto [psqt, positional] = smallNet ? networks.small.evaluate(pos, accumulators, caches.small)
-                                       : networks.big.evaluate(pos, accumulators, caches.big);
+    Color us   = pos.side_to_move();
+    Color them = ~us;
+    Bitboard enemyKingBB = pos.pieces(them, KING);
+    Bitboard ourKingBB   = pos.pieces(us, KING);
+    if (!enemyKingBB || !ourKingBB) return (Value)Eval::simple_eval(pos);
+    Square enemyKing = lsb(enemyKingBB);
+    Square ourKing   = lsb(ourKingBB);
 
-    Value nnue = (125 * psqt + 131 * positional) / 128;
+    // Basic material evaluation
+    int v = Eval::simple_eval(pos);
 
-    // Re-evaluate the position when higher eval accuracy is worth the time spent
-    if (smallNet && (std::abs(nnue) < 277))
+    // Mobility and proximity to enemy king
+    Bitboard ourPieces = pos.pieces(us);
+    while (ourPieces)
     {
-        std::tie(psqt, positional) = networks.big.evaluate(pos, accumulators, caches.big);
-        nnue                       = (125 * psqt + 131 * positional) / 128;
-        smallNet                   = false;
+        Square s  = pop_lsb(ourPieces);
+        if (type_of(pos.piece_on(s)) == KING)
+            continue;
+
+        // Bonus for proximity to enemy king
+        int d = distance(s, enemyKing);
+        v += (6 - std::min(d, 6)) * 20;
     }
 
-    // Blend optimism and eval with nnue complexity
-    int nnueComplexity = std::abs(psqt - positional);
-    optimism += optimism * nnueComplexity / 476;
-    nnue -= nnue * nnueComplexity / 18236;
+    // Proximity of enemy pieces to our king (danger)
+    Bitboard enemyPieces = pos.pieces(them);
+    while (enemyPieces)
+    {
+        Square s  = pop_lsb(enemyPieces);
+        PieceType pt = type_of(pos.piece_on(s));
+        if (pt == KING)
+            continue;
 
-    int material = 534 * pos.count<PAWN>() + pos.non_pawn_material();
-    int v        = (nnue * (77871 + material) + optimism * (7191 + material)) / 77871;
+        int d = distance(s, ourKing);
+        v -= (6 - std::min(d, 6)) * 25;
+    }
+
+    // Attacks near enemy king
+    Bitboard kingArea = attacks_bb<KING>(enemyKing, 0);
+    Bitboard tempArea = kingArea;
+    while (tempArea)
+    {
+        Square s = pop_lsb(tempArea);
+        if (pos.attackers_to(s) & pos.pieces(us))
+            v += 40;
+        if (pos.attackers_to(s) & pos.pieces(them))
+            v -= 25;
+    }
+
+    // Our king safety
+    Bitboard ourKingArea = attacks_bb<KING>(ourKing, 0);
+    tempArea = ourKingArea;
+    while (tempArea)
+    {
+        Square s = pop_lsb(tempArea);
+        if (pos.attackers_to(s) & pos.pieces(them))
+            v -= 60;
+        if (pos.attackers_to(s) & pos.pieces(us))
+            v += 30;
+    }
+
+    // Mobility bonus
+    v += 2 * (int)popcount(pos.attacks_by<KNIGHT>(us));
+    v += 2 * (int)popcount(pos.attacks_by<BISHOP>(us));
+    v += 2 * (int)popcount(pos.attacks_by<ROOK>(us));
+    v += 2 * (int)popcount(pos.attacks_by<QUEEN>(us));
+
+    v -= 2 * (int)popcount(pos.attacks_by<KNIGHT>(them));
+    v -= 2 * (int)popcount(pos.attacks_by<BISHOP>(them));
+    v -= 2 * (int)popcount(pos.attacks_by<ROOK>(them));
+    v -= 2 * (int)popcount(pos.attacks_by<QUEEN>(them));
 
     // Damp down the evaluation linearly when shuffling
     v -= v * pos.rule50_count() / 199;
 
     // Guarantee evaluation does not hit the tablebase range
-    v = std::clamp(v, VALUE_TB_LOSS_IN_MAX_PLY + 1, VALUE_TB_WIN_IN_MAX_PLY - 1);
+    v = std::clamp(v, (int)VALUE_TB_LOSS_IN_MAX_PLY + 1, (int)VALUE_TB_WIN_IN_MAX_PLY - 1);
 
-    return v;
+    return (Value)v;
 }
 
 // Like evaluate(), but instead of returning a value, it returns
@@ -111,15 +161,15 @@ std::string Eval::trace(Position& pos, const Eval::NNUE::Networks& networks) {
 
     ss << std::showpoint << std::showpos << std::fixed << std::setprecision(2) << std::setw(15);
 
-    auto [psqt, positional] = networks.big.evaluate(pos, *accumulators, caches->big);
-    Value v                 = psqt + positional;
-    v                       = pos.side_to_move() == WHITE ? v : -v;
-    ss << "NNUE evaluation        " << 0.01 * UCIEngine::to_cp(v, pos) << " (white side)\n";
+    // auto [psqt, positional] = networks.big.evaluate(pos, *accumulators, caches->big);
+    Value v                 = 0; // psqt + positional;
+    // v                       = pos.side_to_move() == WHITE ? v : -v;
+    ss << "NNUE evaluation disabled\n";
 
     v = evaluate(networks, pos, *accumulators, *caches, VALUE_ZERO);
     v = pos.side_to_move() == WHITE ? v : -v;
     ss << "Final evaluation       " << 0.01 * UCIEngine::to_cp(v, pos) << " (white side)";
-    ss << " [with scaled NNUE, ...]";
+    ss << " [custom for First Check]";
     ss << "\n";
 
     return ss.str();
