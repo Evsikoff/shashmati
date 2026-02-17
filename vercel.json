@@ -1,7 +1,14 @@
 {
-  "buildCommand": "cd app && npm install && npm run build",
-  "outputDirectory": "app/dist",
   "framework": "vite",
+  "installCommand": "cd app && npm ci",
+  "buildCommand": "cd app && npm run build",
+  "outputDirectory": "app/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
