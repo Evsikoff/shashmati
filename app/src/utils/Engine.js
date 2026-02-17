@@ -28,6 +28,7 @@ export default class Engine {
     };
 
     this.send("uci");
+    this.send("setoption name UCI_Variant value 3check");
   }
 
   send(command) {
@@ -43,6 +44,10 @@ export default class Engine {
   async findBestMove(fen, depth = 10) {
     await this.readyPromise;
 
+    // For 3-check variant, we append +2+2 to simulate that both sides
+    // need only one more check to win (1-check game).
+    const modifiedFen = `${fen} +2+2`;
+
     return new Promise((resolve) => {
       const handler = (line) => {
         if (line.startsWith("bestmove")) {
@@ -52,7 +57,7 @@ export default class Engine {
         }
       };
       this.onMessage = handler;
-      this.send(`position fen ${fen}`);
+      this.send(`position fen ${modifiedFen}`);
       this.send(`go depth ${depth}`);
     });
   }
