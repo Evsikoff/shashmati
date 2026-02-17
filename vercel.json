@@ -1,7 +1,8 @@
 {
-  "buildCommand": "cd app && npm ci && npm run build && cd .. && rm -rf dist && cp -R app/dist dist",
-  "outputDirectory": "dist",
   "framework": "vite",
+  "installCommand": "cd app && npm ci",
+  "buildCommand": "cd app && npm run build",
+  "outputDirectory": "app/dist",
   "rewrites": [
     {
       "source": "/(.*)",
