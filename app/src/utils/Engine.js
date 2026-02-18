@@ -10,7 +10,7 @@ export default class Engine {
   }
 
   init() {
-    this.worker = new Worker("/engine/stockfish.js");
+    this.worker = new Worker(import.meta.env.BASE_URL + "engine/stockfish.js");
     this.worker.onmessage = (e) => {
       const line = typeof e.data === "string" ? e.data : e.data?.data;
       if (!line) return;

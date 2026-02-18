@@ -26,7 +26,7 @@ export default function GameScreen({ opponent, onExit, onWin }) {
     onExit();
   };
 
-  const avatarPath = opponent.avatar_path.replace(/\\/g, "/");
+  const avatarPath = import.meta.env.BASE_URL + opponent.avatar_path.replace(/\\/g, "/").replace(/^\//, "");
 
   return (
     <div className="game-screen">

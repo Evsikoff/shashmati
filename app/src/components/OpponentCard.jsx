@@ -4,7 +4,7 @@ export default function OpponentCard({ shah, progress, onClick }) {
   const unlocked = isUnlocked(shah.id, progress);
   const defeated = isDefeated(shah.id, progress);
 
-  const avatarPath = shah.avatar_path.replace(/\\/g, "/");
+  const avatarPath = import.meta.env.BASE_URL + shah.avatar_path.replace(/\\/g, "/").replace(/^\//, "");
 
   return (
     <button
