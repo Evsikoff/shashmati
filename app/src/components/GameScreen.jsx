@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useChessGame } from "./Board";
 import GameControls from "./GameControls";
+import { showAd } from "../utils/AdsManager";
 
 export default function GameScreen({ opponent, onExit, onWin }) {
   const [playerColor] = useState(() => (Math.random() < 0.5 ? "w" : "b"));
@@ -110,10 +111,10 @@ export default function GameScreen({ opponent, onExit, onWin }) {
                   {opponent.name} объявил вам шах. Вы проиграли.
                 </p>
                 <div className="modal-buttons">
-                  <button className="modal-btn primary" onClick={handleRestart}>
+                  <button className="modal-btn primary" onClick={() => showAd(handleRestart)}>
                     Реванш
                   </button>
-                  <button className="modal-btn" onClick={onExit}>
+                  <button className="modal-btn" onClick={() => showAd(onExit)}>
                     В меню
                   </button>
                 </div>
