@@ -24,7 +24,7 @@ export default function App() {
       setDocumentLanguage(ysdk);
 
       const [loadedShahs, loadedProgress] = await Promise.all([
-        fetch("/data/shahs.json").then((r) => r.json()),
+        fetch(import.meta.env.BASE_URL + "data/shahs.json").then((r) => r.json()),
         loadProgress(),
       ]);
 
