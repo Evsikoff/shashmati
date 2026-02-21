@@ -4,7 +4,7 @@ export default function MainMenu({ shahs, progress, onSelectOpponent }) {
   return (
     <div className="main-menu">
       <div className="menu-header">
-        <h1 className="game-title">ШАШМАТЫ</h1>
+        <h1 className="game-title">ШАШМАТЫ С ШАХАМИ</h1>
         <p className="game-subtitle">Побеждает тот, кто первым поставит ШАХ</p>
       </div>
 
